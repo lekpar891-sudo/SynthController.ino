@@ -1,45 +1,26 @@
-name: Compile Sketch
+name: PlatformIO Compile
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Main Code
+      - name: Checkout
         uses: actions/checkout@v4
-        
-      - name: Checkout USBComposite Library
-        uses: actions/checkout@v4
-        with:
-          repository: arpruss/USBComposite_stm32
-          ref: master # Menentukan branch master agar tidak "Not Found"
-          path: MyLibraries/USBComposite
 
-      - name: Install Arduino CLI
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-          echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
-          
-      - name: Install Roger Clark STM32 Core
-        run: |
-          arduino-cli config init
-          arduino-cli config add board_manager.additional_urls https://github.com/rogerclarkmelbourne/Arduino_STM32/raw/master/package_index.json
-          arduino-cli core update-index
-          arduino-cli core install stm32duino:STM32F1
-          
-      - name: Prepare and Compile
-        run: |
-          # Membuat folder sketch agar sesuai aturan Arduino CLI
-          mkdir -p MySynth
-          cp Main.ino MySynth/MySynth.ino
-          
-          # Kompilasi
-          arduino-cli compile --fqbn stm32duino:STM32F1:genericSTM32F103C:device_variant=STM32F103C8 \
-          --libraries ./MyLibraries \
-          --output-dir ./build ./MySynth
-          
-      - name: Upload Result
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO
+        run: pip install --upgrade platformio
+
+      - name: Run PlatformIO Build
+        run: pio run
+
+      - name: Upload Binary
         uses: actions/upload-artifact@v4
         with:
           name: firmware-stm32
-          path: ./build/*.bin
+          path: .pio/build/bluepill_f103c8/firmware.bin
