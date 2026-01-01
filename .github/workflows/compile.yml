@@ -22,8 +22,8 @@ jobs:
           
       - name: Compile
         run: |
-          # Perhatikan titik (.) di akhir, artinya compile folder saat ini
-          arduino-cli compile --fqbn STMicroelectronics:stm32:GenF1:pnum=BLUEPILL_F103C8,usb=midi --output-dir ./build .
+          # Perintah ini untuk memasak file Main.ino jadi MIDI
+          arduino-cli compile --fqbn STMicroelectronics:stm32:GenF1:pnum=BLUEPILL_F103C8,usb=midi --output-dir ./build Main.ino
           
       - name: Upload Result
         uses: actions/upload-artifact@v4
