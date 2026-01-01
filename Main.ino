@@ -1,6 +1,5 @@
 #include <Arduino.h>
 
-/* MIDI Controller STM32 - Versi USB MIDI Official */
 #define MIDI_HW Serial1 // MIDI Out Fisik (PA9)
 
 const uint8_t ROW_PINS[8] = {PA0, PA1, PA2, PA3, PA4, PA5, PA6, PA7};
@@ -8,7 +7,7 @@ const uint8_t COL_PINS[8] = {PB0, PB1, PB2, PB10, PB11, PB12, PB13, PB14};
 uint8_t matrixState[8][8] = {0};
 
 void setup() {
-  // Serial otomatis jadi USB MIDI karena opsi usb=midi di file YAML
+  // Dengan opsi usb=MIDI di YAML, Serial ini otomatis jadi USB MIDI
   Serial.begin(115200);
   MIDI_HW.begin(31250);
 
@@ -28,9 +27,11 @@ void loop() {
         matrixState[r][c] = pressed;
         uint8_t note = 48 + (r * 8 + c); 
         if (pressed) {
+          // Kirim Note On (Channel 1)
           Serial.write(0x90); Serial.write(note); Serial.write(100);
           MIDI_HW.write(0x90); MIDI_HW.write(note); MIDI_HW.write(100);
         } else {
+          // Kirim Note Off
           Serial.write(0x80); Serial.write(note); Serial.write(0);
           MIDI_HW.write(0x80); MIDI_HW.write(note); MIDI_HW.write(0);
         }
