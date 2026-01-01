@@ -13,24 +13,19 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
           
-      - name: Install STM32 Core (LibMaple)
+      - name: Install Official STM32 Core
         run: |
           arduino-cli config init
-          # Menggunakan core Roger Clark yang mendukung USBComposite
-          arduino-cli config add board_manager.additional_urls https://github.com/rogerclarkmelbourne/Arduino_STM32/raw/master/package_index.json
+          arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
           arduino-cli core update-index
-          arduino-cli core install STM32:stm32
-          
-      - name: Install USBComposite Library Manually
-        run: |
-          # Membuat folder library dan mengunduh USBComposite langsung dari GitHub
-          mkdir -p $HOME/Arduino/libraries
-          git clone https://github.com/arpruss/USBComposite_stm32.git $HOME/Arduino/libraries/USBComposite
+          arduino-cli core install STMicroelectronics:stm32
+          # Install library MIDI standar
+          arduino-cli lib install "MIDI Library"
           
       - name: Compile
         run: |
-          # Kompilasi menggunakan FQBN untuk BluePill (Generic STM32F103C series)
-          arduino-cli compile --fqbn STM32:stm32:genericSTM32F103C:device_variant=STM32F103C8,upload_method=serial,type=BASIC,opt=osstd ./Main.cpp --output-dir ./build
+          # FQBN dengan opsi usb=midi (PENTING!)
+          arduino-cli compile --fqbn STMicroelectronics:stm32:GenF1:pnum=BLUEPILL_F103C8,usb=midi --output-dir ./build ./Main.cpp
           
       - name: Upload Result
         uses: actions/upload-artifact@v4
