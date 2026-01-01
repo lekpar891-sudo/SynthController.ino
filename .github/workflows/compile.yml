@@ -16,24 +16,25 @@ jobs:
       - name: Install Roger Clark STM32 Core
         run: |
           arduino-cli config init
-          # Menggunakan link resmi untuk core Roger Clark agar tidak 404
           arduino-cli config add board_manager.additional_urls http://dan.drown.org/stm32duino/package_STM32duino_index.json
           arduino-cli core update-index
-          # Menginstal core STM32F1 (Roger Clark)
           arduino-cli core install stm32duino:STM32F1
           
       - name: Install USBComposite Library
         run: |
-          # Mengunduh library USBComposite langsung dari GitHub
+          # Membuat folder library
           mkdir -p $HOME/Arduino/libraries
-          git clone https://github.com/arpruss/USBComposite_stm32.git $HOME/Arduino/libraries/USBComposite
+          # Mengunduh library dalam format ZIP (lebih stabil daripada git clone)
+          curl -L https://github.com/arpruss/USBComposite_stm32/archive/refs/heads/master.zip -o usbcomposite.zip
+          unzip usbcomposite.zip -d $HOME/Arduino/libraries/
+          # Mengubah nama folder agar sesuai dengan yang dicari compiler
+          mv $HOME/Arduino/libraries/USBComposite_stm32-master $HOME/Arduino/libraries/USBComposite
           
       - name: Prepare and Compile
         run: |
           mkdir -p MySynth
           cp Main.ino MySynth/MySynth.ino
-          
-          # Menggunakan FQBN Roger Clark: stm32duino:STM32F1:genericSTM32F103C
+          # Proses kompilasi
           arduino-cli compile --fqbn stm32duino:STM32F1:genericSTM32F103C:device_variant=STM32F103C8 --output-dir ./build ./MySynth
           
       - name: Upload Result
