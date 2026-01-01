@@ -22,12 +22,12 @@ jobs:
           
       - name: Prepare and Compile
         run: |
-          # Trik: Membuat folder khusus agar tidak bentrok dengan nama repository
+          # Membuat folder MySynth agar tidak bentrok dengan nama repo
           mkdir -p MySynth
           cp Main.ino MySynth/MySynth.ino
           
-          # Kompilasi dari folder MySynth
-          arduino-cli compile --fqbn STMicroelectronics:stm32:GenF1:pnum=BLUEPILL_F103C8,usb=midi --output-dir ./build ./MySynth
+          # Perhatikan 'usb=MIDI' (Huruf Besar Wajib)
+          arduino-cli compile --fqbn STMicroelectronics:stm32:GenF1:pnum=BLUEPILL_F103C8,usb=MIDI --output-dir ./build ./MySynth
           
       - name: Upload Result
         uses: actions/upload-artifact@v4
