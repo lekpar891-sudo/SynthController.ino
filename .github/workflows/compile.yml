@@ -20,10 +20,14 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install STMicroelectronics:stm32
           
-      - name: Compile
+      - name: Prepare and Compile
         run: |
-          # Perintah ini untuk memasak file Main.ino jadi MIDI
-          arduino-cli compile --fqbn STMicroelectronics:stm32:GenF1:pnum=BLUEPILL_F103C8,usb=midi --output-dir ./build Main.ino
+          # Trik: Membuat folder khusus agar tidak bentrok dengan nama repository
+          mkdir -p MySynth
+          cp Main.ino MySynth/MySynth.ino
+          
+          # Kompilasi dari folder MySynth
+          arduino-cli compile --fqbn STMicroelectronics:stm32:GenF1:pnum=BLUEPILL_F103C8,usb=midi --output-dir ./build ./MySynth
           
       - name: Upload Result
         uses: actions/upload-artifact@v4
