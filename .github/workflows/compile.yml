@@ -5,11 +5,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - os: checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+        
       - name: Install Arduino CLI
         run: |
           curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+          
       - name: Install STM32 Core & Library
         run: |
           arduino-cli config init
@@ -17,9 +20,11 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install STMicroelectronics:stm32
           arduino-cli lib install "USBComposite"
+          
       - name: Compile
         run: |
           arduino-cli compile --fqbn STMicroelectronics:stm32:GenF1:pnum=BLUEPILL_F103C8 --output-dir ./build ./SynthController.ino
+          
       - name: Upload Result
         uses: actions/upload-artifact@v3
         with:
