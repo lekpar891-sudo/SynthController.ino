@@ -5,9 +5,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Main Code
         uses: actions/checkout@v4
         
+      - name: Checkout USBComposite Library
+        uses: actions/checkout@v4
+        with:
+          repository: arpruss/USBComposite_stm32
+          path: MyLibraries/USBComposite
+
       - name: Install Arduino CLI
         run: |
           curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
@@ -16,26 +22,20 @@ jobs:
       - name: Install Roger Clark STM32 Core
         run: |
           arduino-cli config init
-          arduino-cli config add board_manager.additional_urls http://dan.drown.org/stm32duino/package_STM32duino_index.json
+          # Menggunakan link raw yang lebih stabil
+          arduino-cli config add board_manager.additional_urls https://raw.githubusercontent.com/rogerclarkmelbourne/Arduino_STM32/master/package_index.json
           arduino-cli core update-index
           arduino-cli core install stm32duino:STM32F1
-          
-      - name: Install USBComposite Library
-        run: |
-          # Membuat folder library
-          mkdir -p $HOME/Arduino/libraries
-          # Mengunduh library dalam format ZIP (lebih stabil daripada git clone)
-          curl -L https://github.com/arpruss/USBComposite_stm32/archive/refs/heads/master.zip -o usbcomposite.zip
-          unzip usbcomposite.zip -d $HOME/Arduino/libraries/
-          # Mengubah nama folder agar sesuai dengan yang dicari compiler
-          mv $HOME/Arduino/libraries/USBComposite_stm32-master $HOME/Arduino/libraries/USBComposite
           
       - name: Prepare and Compile
         run: |
           mkdir -p MySynth
           cp Main.ino MySynth/MySynth.ino
-          # Proses kompilasi
-          arduino-cli compile --fqbn stm32duino:STM32F1:genericSTM32F103C:device_variant=STM32F103C8 --output-dir ./build ./MySynth
+          
+          # Kompilasi dengan menyertakan folder MyLibraries
+          arduino-cli compile --fqbn stm32duino:STM32F1:genericSTM32F103C:device_variant=STM32F103C8 \
+          --libraries ./MyLibraries \
+          --output-dir ./build ./MySynth
           
       - name: Upload Result
         uses: actions/upload-artifact@v4
