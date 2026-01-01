@@ -8,7 +8,7 @@ const uint8_t COL_PINS[8] = {PB0, PB1, PB2, PB10, PB11, PB12, PB13, PB14};
 uint8_t matrixState[8][8] = {0};
 
 void setup() {
-  // Serial otomatis jadi USB MIDI karena setting di file YAML tadi
+  // Serial otomatis jadi USB MIDI karena opsi usb=midi di file YAML
   Serial.begin(115200);
   MIDI_HW.begin(31250);
 
@@ -26,7 +26,7 @@ void loop() {
       bool pressed = (digitalRead(ROW_PINS[r]) == LOW);
       if (pressed != matrixState[r][c]) {
         matrixState[r][c] = pressed;
-        uint8_t note = 48 + (r * 8 + c); // Nada dasar C3
+        uint8_t note = 48 + (r * 8 + c); 
         if (pressed) {
           Serial.write(0x90); Serial.write(note); Serial.write(100);
           MIDI_HW.write(0x90); MIDI_HW.write(note); MIDI_HW.write(100);
