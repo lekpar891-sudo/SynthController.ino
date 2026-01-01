@@ -12,6 +12,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: arpruss/USBComposite_stm32
+          ref: master # Menentukan branch master agar tidak "Not Found"
           path: MyLibraries/USBComposite
 
       - name: Install Arduino CLI
@@ -22,17 +23,17 @@ jobs:
       - name: Install Roger Clark STM32 Core
         run: |
           arduino-cli config init
-          # Menggunakan link raw yang lebih stabil
-          arduino-cli config add board_manager.additional_urls https://raw.githubusercontent.com/rogerclarkmelbourne/Arduino_STM32/master/package_index.json
+          arduino-cli config add board_manager.additional_urls https://github.com/rogerclarkmelbourne/Arduino_STM32/raw/master/package_index.json
           arduino-cli core update-index
           arduino-cli core install stm32duino:STM32F1
           
       - name: Prepare and Compile
         run: |
+          # Membuat folder sketch agar sesuai aturan Arduino CLI
           mkdir -p MySynth
           cp Main.ino MySynth/MySynth.ino
           
-          # Kompilasi dengan menyertakan folder MyLibraries
+          # Kompilasi
           arduino-cli compile --fqbn stm32duino:STM32F1:genericSTM32F103C:device_variant=STM32F103C8 \
           --libraries ./MyLibraries \
           --output-dir ./build ./MySynth
