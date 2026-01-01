@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Install Arduino CLI
         run: |
@@ -23,10 +23,11 @@ jobs:
           
       - name: Compile
         run: |
-          arduino-cli compile --fqbn STMicroelectronics:stm32:GenF1:pnum=BLUEPILL_F103C8 --output-dir ./build ./SynthController.ino
+          # Perintah ini akan mencari file Main.cpp sesuai di repo Anda
+          arduino-cli compile --fqbn STMicroelectronics:stm32:GenF1:pnum=BLUEPILL_F103C8 --output-dir ./build ./Main.cpp
           
       - name: Upload Result
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: firmware-stm32
           path: ./build/*.bin
