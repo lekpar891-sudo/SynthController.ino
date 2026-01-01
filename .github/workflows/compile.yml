@@ -13,18 +13,24 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
           
-      - name: Install STM32 Core & Library
+      - name: Install STM32 Core (LibMaple)
         run: |
           arduino-cli config init
-          arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
+          # Menggunakan core Roger Clark yang mendukung USBComposite
+          arduino-cli config add board_manager.additional_urls https://github.com/rogerclarkmelbourne/Arduino_STM32/raw/master/package_index.json
           arduino-cli core update-index
-          arduino-cli core install STMicroelectronics:stm32
-          arduino-cli lib install "USBComposite"
+          arduino-cli core install STM32:stm32
+          
+      - name: Install USBComposite Library Manually
+        run: |
+          # Membuat folder library dan mengunduh USBComposite langsung dari GitHub
+          mkdir -p $HOME/Arduino/libraries
+          git clone https://github.com/arpruss/USBComposite_stm32.git $HOME/Arduino/libraries/USBComposite
           
       - name: Compile
         run: |
-          # Perintah ini akan mencari file Main.cpp sesuai di repo Anda
-          arduino-cli compile --fqbn STMicroelectronics:stm32:GenF1:pnum=BLUEPILL_F103C8 --output-dir ./build ./Main.cpp
+          # Kompilasi menggunakan FQBN untuk BluePill (Generic STM32F103C series)
+          arduino-cli compile --fqbn STM32:stm32:genericSTM32F103C:device_variant=STM32F103C8,upload_method=serial,type=BASIC,opt=osstd ./Main.cpp --output-dir ./build
           
       - name: Upload Result
         uses: actions/upload-artifact@v4
