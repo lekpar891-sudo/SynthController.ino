@@ -13,14 +13,16 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Configure Git
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+
       - name: Install PlatformIO
         run: pip install --upgrade platformio
 
       - name: Run PlatformIO Build
-        # Tambahkan env agar git tidak meminta username
         run: pio run
-        env:
-          GIT_TERMINAL_PROMPT: 0
 
       - name: Upload Binary
         uses: actions/upload-artifact@v4
