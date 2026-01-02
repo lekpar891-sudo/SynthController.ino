@@ -17,7 +17,10 @@ jobs:
         run: pip install --upgrade platformio
 
       - name: Run PlatformIO Build
+        # Tambahkan env agar git tidak meminta username
         run: pio run
+        env:
+          GIT_TERMINAL_PROMPT: 0
 
       - name: Upload Binary
         uses: actions/upload-artifact@v4
