@@ -13,11 +13,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Configure Git
-        run: |
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
-
       - name: Install PlatformIO
         run: pip install --upgrade platformio
 
