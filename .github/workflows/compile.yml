@@ -1,14 +1,14 @@
-name: PlatformIO Compile
+name: PlatformIO Compile Anti-Gagal
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -16,11 +16,18 @@ jobs:
       - name: Install PlatformIO
         run: pip install --upgrade platformio
 
-      - name: Run PlatformIO Build
+      - name: Download Library Manual (Anti-404)
+        run: |
+          mkdir -p lib
+          curl -L https://github.com/arpruss/USBComposite_stm32f1/archive/refs/heads/master.zip -o lib.zip
+          unzip lib.zip
+          mv USBComposite_stm32f1-master lib/USBComposite
+
+      - name: Run Build
         run: pio run
 
       - name: Upload Binary
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-stm32
+          name: firmware-siap-pakai
           path: .pio/build/bluepill_f103c8/firmware.bin
