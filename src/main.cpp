@@ -8,9 +8,10 @@ USBMIDI midi;
 const uint8_t ROW_PINS[8] = {PA2, PA3, PA5, PA6, PA7, PB3, PB4, PB5};
 const uint8_t COL_PINS[10] = {PB0, PB1, PB2, PB10, PB11, PB12, PB13, PB14, PA8, PA10};
 
-const uint8_t PIN_PITCH_X = A0; 
-const uint8_t PIN_PITCH_Y = A1; 
-const uint8_t PIN_POT_MASTER = A4;
+// Perbaikan: Menggunakan nama pin asli STM32 agar tidak error
+const uint8_t PIN_PITCH_X = PA0; 
+const uint8_t PIN_PITCH_Y = PA1; 
+const uint8_t PIN_POT_MASTER = PA4;
 const uint8_t PIN_ENCODER_A = PB6;
 const uint8_t PIN_ENCODER_B = PB7;
 const uint8_t PIN_ENCODER_SW = PB8;
@@ -32,7 +33,7 @@ void encoderISR() {
     encoderMoved = true;
 }
 
-// Memaksa koneksi USB agar terdeteksi HP
+// Memaksa koneksi USB agar terdeteksi HP (USB Re-enumeration)
 void forceUSBReset() {
     pinMode(PA12, OUTPUT);
     digitalWrite(PA12, LOW);
@@ -60,7 +61,7 @@ void setup() {
 void loop() {
     midi.poll();
 
-    // 1. Klik Encoder untuk ganti mode X
+    // 1. Tombol Klik Encoder (Ganti Mode Joystick X)
     if (digitalRead(PIN_ENCODER_SW) == LOW && (millis() - lastBtnPress > 300)) {
         isXTremoloMode = !isXTremoloMode;
         lastBtnPress = millis();
@@ -124,4 +125,4 @@ void loop() {
         if (delta > 0) transpose++; 
         else if (delta < 0) transpose--;
     }
-} // <--- Pastikan kurung tutup ini ada dan tidak terhapus
+}
