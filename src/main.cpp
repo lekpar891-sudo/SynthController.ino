@@ -3,9 +3,11 @@
 
 USBMIDI midi;
 
-/* ---------- PIN DEFINITION ---------- */
+/* ---------- KONFIGURASI PIN ---------- */
+// Matrix 8 Row x 10 Column (Pastikan wiring sesuai ini)
 const uint8_t ROW_PINS[8] = {PA2, PA3, PA5, PA6, PA7, PB3, PB4, PB5};
 const uint8_t COL_PINS[10] = {PB0, PB1, PB2, PB10, PB11, PB12, PB13, PB14, PA8, PA10};
+
 const uint8_t PIN_PITCH_X = A0; 
 const uint8_t PIN_PITCH_Y = A1; 
 const uint8_t PIN_POT_MASTER = A4;
@@ -13,12 +15,14 @@ const uint8_t PIN_ENCODER_A = PB6;
 const uint8_t PIN_ENCODER_B = PB7;
 const uint8_t PIN_ENCODER_SW = PB8;
 
+/* ---------- VARIABEL KONTROL ---------- */
 uint8_t matrixState[8][10] = {0};
 int currentOctave = 0;
 int transpose = 0;
 volatile int encoderPos = 0;
 volatile bool encoderMoved = false;
 bool isXTremoloMode = false;
+
 int lastX = -1, lastY_Up = -1, lastY_Down = -1, lastVol = -1;
 unsigned long lastBtnPress = 0;
 
@@ -28,7 +32,7 @@ void encoderISR() {
     encoderMoved = true;
 }
 
-// FUNGSI PENTING: Memaksa HP mengenali USB
+// Fungsi untuk memaksa HP mendeteksi ulang USB
 void forceUSBReset() {
     pinMode(PA12, OUTPUT);
     digitalWrite(PA12, LOW);
@@ -38,7 +42,7 @@ void forceUSBReset() {
 }
 
 void setup() {
-    forceUSBReset(); // Jalankan reset sebelum USB dimulai
+    forceUSBReset(); // Reset USB agar HP langsung "ngeh" ada alat dicolok
 
     USBComposite.setProductId(0x0030);
     midi.begin();
@@ -46,6 +50,7 @@ void setup() {
     
     for (int i = 0; i < 8; i++) pinMode(ROW_PINS[i], INPUT_PULLUP);
     for (int i = 0; i < 10; i++) pinMode(COL_PINS[i], INPUT);
+    
     pinMode(PIN_ENCODER_A, INPUT_PULLUP);
     pinMode(PIN_ENCODER_B, INPUT_PULLUP);
     pinMode(PIN_ENCODER_SW, INPUT_PULLUP);
@@ -55,13 +60,13 @@ void setup() {
 void loop() {
     midi.poll();
 
-    // Logika Tombol Mode X
+    // 1. Ganti Mode Joystick X (Pitchbend <-> Tremolo)
     if (digitalRead(PIN_ENCODER_SW) == LOW && (millis() - lastBtnPress > 300)) {
         isXTremoloMode = !isXTremoloMode;
         lastBtnPress = millis();
     }
 
-    // Scan Matrix 8x10
+    // 2. Scan Matrix 8x10 (61 Tuts + 16 Tombol Fungsi)
     for (int c = 0; c < 10; c++) {
         pinMode(COL_PINS[c], OUTPUT);
         digitalWrite(COL_PINS[c], LOW);
@@ -69,12 +74,13 @@ void loop() {
             bool pr = (digitalRead(ROW_PINS[r]) == LOW);
             if (pr != matrixState[r][c]) {
                 matrixState[r][c] = pr;
-                int bID = (r * 10) + c;
-                if (bID < 61) {
+                int bID = (r * 10) + c; 
+                
+                if (bID < 61) { // 61 Tuts Piano (Note 36 ke atas)
                     uint8_t note = 36 + bID + (currentOctave * 12) + transpose;
                     if (pr) midi.sendNoteOn(0, note, 100);
                     else midi.sendNoteOff(0, note, 0);
-                } else if (bID >= 61 && bID < 77) {
+                } else if (bID >= 61 && bID < 77) { // 16 Tombol Fungsi (Intro dll)
                     uint8_t ccList[] = {80,81,82,83,84,85,86,87,88,89,90,91,92,102,103,104};
                     midi.sendControlChange(0, ccList[bID - 61], pr ? 127 : 0);
                 }
@@ -83,29 +89,46 @@ void loop() {
         pinMode(COL_PINS[c], INPUT);
     }
 
-    // Joystick & Potentio
+    // 3. Joystick Sumbu X
     int rawX = analogRead(PIN_PITCH_X);
     if (isXTremoloMode) {
         int vx = map(rawX, 0, 1023, 0, 127);
-        if (abs(vx-lastX)>1) { midi.sendControlChange(0,1,vx); lastX=vx; }
+        if (abs(vx - lastX) > 1) { 
+            midi.sendControlChange(0, 1, vx); 
+            lastX = vx; 
+        }
     } else {
         int vx = map(rawX, 0, 1023, 0, 16383);
-        if (abs(vx-lastX)>100) { midi.sendPitchWheel(vx); lastX=vx; }
+        if (abs(vx - lastX) > 100) { 
+            midi.sendPitchChange(vx); // FUNGSI SUDAH DIPERBAIKI
+            lastX = vx; 
+        }
     }
 
+    // 4. Joystick Sumbu Y (Up: Vibrato, Down: Filter)
     int rawY = analogRead(PIN_PITCH_Y);
     if (rawY > 532) {
         int v = map(rawY, 532, 1023, 0, 127);
         if (v != lastY_Up) { midi.sendControlChange(0, 1, v); lastY_Up = v; }
-    } else if (lastY_Up != 0) { midi.sendControlChange(0, 1, 0); lastY_Up = 0; }
+    } else if (lastY_Up != 0) { 
+        midi.sendControlChange(0, 1, 0); lastY_Up = 0; 
+    }
+    
     if (rawY < 492) {
         int v = map(rawY, 492, 0, 0, 127);
         if (v != lastY_Down) { midi.sendControlChange(0, 74, v); lastY_Down = v; }
-    } else if (lastY_Down != 0) { midi.sendControlChange(0, 74, 0); lastY_Down = 0; }
+    } else if (lastY_Down != 0) { 
+        midi.sendControlChange(0, 74, 0); lastY_Down = 0; 
+    }
 
+    // 5. Volume Master
     int vv = map(analogRead(PIN_POT_MASTER), 0, 1023, 0, 127);
-    if (abs(vv-lastVol)>1) { midi.sendControlChange(0,7,vv); lastVol=vv; }
+    if (abs(vv - lastVol) > 1) { 
+        midi.sendControlChange(0, 7, vv); 
+        lastVol = vv; 
+    }
 
+    // 6. Handle Encoder Transpose
     if (encoderMoved) {
         noInterrupts();
         int delta = encoderPos; encoderPos = 0; encoderMoved = false;
