@@ -1,4 +1,4 @@
-name: PlatformIO Compile Anti-Gagal
+name: PlatformIO Compile Final
 on: [push]
 
 jobs:
@@ -15,13 +15,6 @@ jobs:
 
       - name: Install PlatformIO
         run: pip install --upgrade platformio
-
-      - name: Download Library Manual (Anti-404)
-        run: |
-          mkdir -p lib
-          curl -L https://github.com/arpruss/USBComposite_stm32f1/archive/refs/heads/master.zip -o lib.zip
-          unzip lib.zip
-          mv USBComposite_stm32f1-master lib/USBComposite
 
       - name: Run Build
         run: pio run
